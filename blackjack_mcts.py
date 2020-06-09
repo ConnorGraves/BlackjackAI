@@ -424,51 +424,82 @@ def make_n_decks(n):
 # the same for metric purposes, since these are the actions we can affect,
 # not the random card draws
 actions = ""
-numdecks = 2
-cutoffScore = -1
-maxBet = 3.0
-minBet = 1.0
-aggression = 0.3
-numGames = 100
-numHands = 15
 
-csvfile = open("results.csv", "w", newline='')
-csvwriter = csv.writer(csvfile, delimiter=',', dialect='excel', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-csvwriter.writerow(['aggression', 'winnings'])
+mode = 1
 
-for j in range(0,numGames):
-  game = Game(d_stay = 17, deck = make_n_decks(numdecks), budget = 30.00)
-  for i in range(0, numHands):
-    deck_score = evaluate_deck(game.deck, numdecks)
-    if deck_score <= cutoffScore:
-      print("Walking away")
-      break
-    bet = max(minBet, min(game.budget + game.winnings, maxBet, minBet + ((deck_score - cutoffScore) / 4.0)))
-    if(game.budget + game.winnings - bet < 0):
-      print("Out of cash")
-      break
-    play(game, bet = bet, reccs = True, auto = True)
-    if sum(game.deck) < 52.0 * numdecks / 4.0:
-      print("Shuffling...")
-      game.deck = make_n_decks(numdecks)
+if __name__ == '__main__':
+  cutoffScore = -1.5
+  aggression = 0.3
 
-  csvwriter.writerow([aggression, game.winnings])
-  print("\nALL GAMES PLAYED!\nEnding Funds: ${0:.2f}".format(game.budget + game.winnings))
+  # Interactive Demo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  if(mode == 1):
+    print("Set Budget:")
+    budget = float(input())
+    print("Set Max Bet Amount:")
+    maxBet = float(input())
+    print("Set Min Bet Amount:")
+    minBet = float(input())
+    print("Set Number of Decks in Play:")
+    numdecks = int(input())
 
-# for j in range(0, 20):
-#   game = Game(d_stay = 17, deck = make_n_decks(numdecks), budget = 100.00)
+    game = Game(d_stay = 17, deck = make_n_decks(numdecks), budget = budget)
 
-#   for i in range(0, 20):
-#     deck_score = evaluate_deck(game.deck)
-#     if deck_score <= cutoffScore:
-#       print("Walking away")
-#       break
-#     else:
-#       bet = max(minBet, min(game.budget + game.winnings, maxBet, (deck_score - cutoffScore) ** 2))
-#       play(game, bet = bet, reccs = True, auto = True)
-#       if sum(game.deck) < 52.0 * numdecks / 4.0:
-#         print("Shuffling...")
-#         game.deck = make_n_decks(numdecks)
+    while(True):
+      deck_score = evaluate_deck(game.deck, numdecks)
+      if deck_score <= cutoffScore:
+        print("\nTrue Count is {}. Reccomend you stop playing".format(deck_score))
+      else:
+        print("\nTrue Count is {}. Reccomend you keep playing".format(deck_score))
+      print("Continue Playing? ([y]/n)")
+      cont = input()
+      if cont != 'y' and cont != 'Y' and cont != '':
+        break;
+      
+      reccbet = max(min(minBet, game.budget + game.winnings), min(maxBet, minBet + ((deck_score - cutoffScore) / 2.0)))
+      print("You have ${0:.2f} in funds.".format(game.budget + game.winnings))
+      print("Enter bet amount (reccomend ${0:.2f})".format(reccbet))
+      bet = input()
+      if str(bet) == '':
+        bet = reccbet
+      else:
+        bet = float(bet)
 
-#   csvwriter.writerow([cutoffScore, game.winnings])
-#   print("\nALL GAMES PLAYED!\nEnding Funds: ${0:.2f}".format(game.budget + game.winnings))
+      play(game, bet = bet, reccs = True, auto = False)
+
+      if sum(game.deck) < 52.0 * numdecks / 4.0:
+        print("Shuffling Decks...")
+        game.deck = make_n_decks(numdecks)
+
+    print("\nALL GAMES PLAYED!\nEnding Funds: ${0:.2f}".format(game.budget + game.winnings))
+
+
+  # simulation demo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  if mode == 2:
+    numGames = 5
+    numHands = 15
+    maxBet = 3.0
+    minBet = 1.0
+    numdecks = 4
+
+    csvfile = open("results.csv", "w", newline='')
+    csvwriter = csv.writer(csvfile, delimiter=',', dialect='excel', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    csvwriter.writerow(['aggression', 'winnings'])
+
+    for j in range(0,numGames):
+      game = Game(d_stay = 17, deck = make_n_decks(numdecks), budget = 30.00)
+      for i in range(0, numHands):
+        deck_score = evaluate_deck(game.deck, numdecks)
+        if deck_score <= cutoffScore:
+          print("Walking away")
+          break
+        bet = max(min(minBet, game.budget + game.winnings), min(maxBet, minBet + ((deck_score - cutoffScore) / 2.0)))
+        if(game.budget + game.winnings - bet < 0):
+          print("Out of cash")
+          break
+        play(game, bet = bet, reccs = True, auto = True)
+        if sum(game.deck) < 52.0 * numdecks / 4.0:
+          print("Shuffling...")
+          game.deck = make_n_decks(numdecks)
+
+      csvwriter.writerow([aggression, game.winnings])
+      print("\nALL GAMES PLAYED!\nEnding Funds: ${0:.2f}".format(game.budget + game.winnings))

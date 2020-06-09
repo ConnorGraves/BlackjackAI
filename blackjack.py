@@ -190,17 +190,19 @@ class Game:
 				raise ValueError('Deck is empty: Cannot draw a card.')
 
 			eligible_values = []
+			tempdeck = []
 			for i in range(0,10):
 				if self.deck[i] > 0:
 					eligible_values.append(i)
+					tempdeck.append(self.deck[i])
 
-			value = random.choice(eligible_values)
+			value = random.choices(eligible_values, weights = tempdeck, k = 1)
 
-		if self.deck[value] <= 0:
-			raise ValueError("Deck has no more {}'s to draw.".format(self.convert_value_to_card(value)))
+		if self.deck[value[0]] <= 0:
+			raise ValueError("Deck has no more {}'s to draw.".format(self.convert_value_to_card(value[0])))
 
-		self.deck[value] = self.deck[value] - 1
-		self.p_hand.append(value)
+		self.deck[value[0]] = self.deck[value[0]] - 1
+		self.p_hand.append(value[0])
 
 	def dealer_draw(self, value = None):
 		if value is None:
@@ -208,17 +210,19 @@ class Game:
 				raise ValueError('Deck is empty: Cannot draw a card.')
 
 			eligible_values = []
+			tempdeck = []
 			for i in range(0,10):
 				if self.deck[i] > 0:
 					eligible_values.append(i)
+					tempdeck.append(self.deck[i])
 
-			value = random.choice(eligible_values)
+			value = random.choices(eligible_values, weights = tempdeck, k = 1)
 
-		if self.deck[value] <= 0:
-			raise ValueError("Deck has no more {}'s to draw.".format(self.convert_value_to_card(value)))
+		if self.deck[value[0]] <= 0:
+			raise ValueError("Deck has no more {}'s to draw.".format(self.convert_value_to_card(value[0])))
 
-		self.deck[value] = self.deck[value] - 1
-		self.d_hand.append(value)
+		self.deck[value[0]] = self.deck[value[0]] - 1
+		self.d_hand.append(value[0])
 
 	def score_p_hand(self):
 		numAces = 0
